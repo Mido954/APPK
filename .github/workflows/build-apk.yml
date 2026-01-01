@@ -1,0 +1,110 @@
+name: Build Flet Android APK
+
+on:
+  workflow_dispatch:  # يمكنك تشغيله يدوياً
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 تحميل الكود
+      uses: actions/checkout@v3
+      
+    - name: 🐍 إعداد Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+        
+    - name: 📦 تثبيت المتطلبات
+      run: |
+        pip install flet
+        pip install buildozer
+        
+    - name: ⚙️ إنشاء ملف buildozer.spec
+      run: |
+        cat > buildozer.spec << EOF
+        [app]
+        # اسم التطبيق
+        title = آلة حاسبة
+        package.name = calculator
+        package.domain = com.example
+        
+        # إصدار التطبيق
+        version = 1.0.0
+        
+        # ملف المصدر
+        source.dir = .
+        source.include_exts = py,png,jpg,kv,atlas,json,ttf
+        
+        # المتطلبات
+        requirements = python3,flet==0.22.0
+        
+        # إعدادات Android
+        android.permissions = INTERNET
+        android.api = 33
+        android.minapi = 21
+        android.sdk = 24
+        android.ndk = 23b
+        android.arch = armeabi-v7a
+        
+        # التوجه
+        orientation = portrait
+        
+        # السمة
+        fullscreen = 0
+        
+        [buildozer]
+        log_level = 2
+        warn_on_root = 1
+        EOF
+        
+    - name: 🔨 بناء APK
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          git \
+          zip \
+          unzip \
+          openjdk-11-jdk \
+          python3-pip \
+          autoconf \
+          libtool \
+          pkg-config \
+          zlib1g-dev \
+          libncurses5-dev \
+          libncursesw5-dev \
+          libtinfo5 \
+          cmake \
+          libffi-dev \
+          libssl-dev
+        
+        # تثبيت Cython
+        pip3 install cython==0.29.33
+        
+        # البناء
+        echo "🚀 بدء بناء APK..."
+        buildozer -v android debug
+        
+    - name: ⬆️ رفع APK
+      if: success()
+      uses: actions/upload-artifact@v3
+      with:
+        name: calculator-apk
+        path: bin/*.apk
+        
+    - name: 📱 رابط التطبيق المباشر
+      if: success()
+      run: |
+        echo "🎉 تم بناء APK بنجاح!"
+        echo "📲 لاستخدام التطبيق مباشرة في Flet App:"
+        echo "https://raw.githubusercontent.com/${{ github.repository }}/main/main.py"
+        echo ""
+        echo "📥 لتحميل APK:"
+        echo "1. اضغط على 'calculator-apk' في تبويب Artifacts"
+        echo "2. حمل الملف .apk"
+        echo "3. انقله لهاتفك وثبته"
