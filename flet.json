@@ -1,0 +1,10 @@
+{
+    "project_name": "CalculatorApp",
+    "project_version": "1.0.0",
+    "app_name": "آلة حاسبة",
+    "package_name": "com.example.calculator",
+    "web_renderer": "canvaskit",
+    "use_color_emoji": true,
+    "company_name": "YourCompany",
+    "company_domain": "example.com"
+}
